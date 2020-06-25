@@ -5,7 +5,7 @@ namespace Scripts.Environment
     [RequireComponent(typeof(Rigidbody))]
     public class GravitySource : MonoBehaviour
     {
-        [SerializeField] private float gravity;
+        [SerializeField] private float gravity = 200000;
 
         public float Gravity { get => gravity; set => gravity = value; }
 

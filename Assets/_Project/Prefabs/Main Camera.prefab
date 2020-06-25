@@ -97,8 +97,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d5f43267431af04ea836ac46c2a51bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _spaceShip: {fileID: 0}
-  _barycenter: {fileID: 0}
+  spaceShip: {fileID: 0}
+  barycenter: {fileID: 0}
 --- !u!114 &782352496525297646
 MonoBehaviour:
   m_ObjectHideFlags: 0

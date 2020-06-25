@@ -1,18 +1,22 @@
-﻿using UnityEngine;
+﻿using Scripts.Player;
+using UnityEngine;
 
 namespace Scripts.Camera
 {
     public class CameraZoom : MonoBehaviour
     {
-        [SerializeField] private Transform spaceShip;
+        [SerializeField] private GameObject spaceShip;
         [SerializeField] private Transform barycenter;
 
-        public Transform SpaceShip { get => spaceShip; set => spaceShip = value; }
-        public Transform Barycenter { get => barycenter; set => barycenter = value; } // Currently set to Planet 1 - change later
-        
-        private void Start() => SpaceShip = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+        public GameObject SpaceShip { get => spaceShip; set => spaceShip = value; }
+        public Transform Barycenter { get => barycenter; set => barycenter = value; }
 
-        void LateUpdate() => FixedCameraFollowSmooth(SpaceShip, Barycenter);
+        private void Start()
+        {
+            spaceShip = GameObject.FindGameObjectWithTag("Player");
+        }
+
+        void LateUpdate() => FixedCameraFollowSmooth(SpaceShip.transform, spaceShip.GetComponent<SpaceShip>().Barycenter);
 
         // Follow Two Transforms with a Fixed-Orientation Camera
         public void FixedCameraFollowSmooth(Transform t1, Transform t2)

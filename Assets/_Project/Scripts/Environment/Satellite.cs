@@ -11,7 +11,7 @@ namespace Scripts.Environment
         void Start()
         {
             _rb = gameObject.GetComponent<Rigidbody>();
-            _rb.AddForce(initialVelocity); // Set initial velocity of ship.
+            _rb.AddForce(initialVelocity); // Set initial velocity of satellite
         }
     }
 }

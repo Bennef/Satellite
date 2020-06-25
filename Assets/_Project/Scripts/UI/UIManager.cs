@@ -1,18 +1,20 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using TMPro;
+using UnityEngine;
 
 namespace Scripts.UI
 {
     public class UIManager : MonoBehaviour
     {
-        [SerializeField] private Text _nearestPlanetText;
+        [SerializeField] private TextMeshProUGUI _nearestPlanetLabel, _nearestPlanetText;
 
-        public Text NearestPlanetText => _nearestPlanetText;
+        public TextMeshProUGUI NearestPlanetLabel => _nearestPlanetLabel;
 
-        public void ShowText(Text textToShow) => textToShow.enabled = true;
+        public TextMeshProUGUI NearestPlanetText { get => _nearestPlanetText; set => _nearestPlanetText = value; }
 
-        public void HideText(Text textToHide) => textToHide.enabled = false;
+        public void ShowText(TextMeshProUGUI textToShow) => textToShow.enabled = true;
 
-        public void SetText(Text textToSet, string value) => textToSet.text = value;
+        public void HideText(TextMeshProUGUI textToHide) => textToHide.enabled = false;
+
+        public void SetText(TextMeshProUGUI textToSet, string value) => textToSet.SetText(value);
     }
 }
