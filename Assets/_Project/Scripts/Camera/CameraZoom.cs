@@ -13,14 +13,18 @@ namespace Scripts.Camera
 
         private void Start() => _spaceShip = GameObject.FindGameObjectWithTag("Player");
 
-        void LateUpdate() => FixedCameraFollowSmooth(SpaceShip.transform, _spaceShip.GetComponent<SpaceShip>().Barycenter);
+        void LateUpdate()
+        {
+            if (_spaceShip != null)
+                FixedCameraFollowSmooth(SpaceShip.transform, _spaceShip.GetComponent<SpaceShip>().Barycenter);
+        }
 
         // Follow Two Transforms with a Fixed-Orientation Camera
         public void FixedCameraFollowSmooth(Transform t1, Transform t2)
         {
             // How many units should we keep from the spacehip/barycenter
             float zoomFactor = 2.5f;
-            float followTimeDelta = 8.8f;
+            float followTimeDelta = 0.8f;
 
             // Midpoint we're after
             Vector3 midpoint = (t1.position + t2.position) / 2f;

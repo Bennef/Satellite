@@ -16,11 +16,10 @@ namespace Scripts.Player
         [SerializeField] private Transform _barycenter; 
         [SerializeField] private List<Transform> _planetList;
         [SerializeField] private ParticleSystem[] _thrustParticles;
-        [SerializeField] private ParticleSystem _EMPParticles;
+        [SerializeField] private ParticleSystem _EMPParticles, _impactParticles;
         private float _thrustForce = 1.001f;
         private Rigidbody _rb;
         private Transform _spaceShip;
-        private MeshRenderer _shipMeshRenderer;
         private SFXManager _sFXManager;
         private InputHandler _inputHandler;
         private Light _brakeLight;
@@ -33,7 +32,6 @@ namespace Scripts.Player
         {
             _rb = gameObject.GetComponent<Rigidbody>();
             _spaceShip = gameObject.GetComponent<Transform>();
-            _shipMeshRenderer = GetComponentInChildren<MeshRenderer>();
             _sFXManager = FindObjectOfType<SFXManager>();
             _inputHandler = FindObjectOfType<InputHandler>();
             _brakeLight = GameObject.Find("Brake Light").GetComponent<Light>();
@@ -48,7 +46,7 @@ namespace Scripts.Player
             InvokeRepeating("UpdateClosestPlanet", 0, 1); // Update the closest Planet every second.
         }
 
-        public Transform FindClosestPlanet(Transform locatingEntity)
+        public Transform FindNearestPlanet(Transform locatingEntity)
         {
             // Create a temporary List of Planets so we don't reorder the main List.
             List<Transform> tempList = _planetList;
@@ -56,13 +54,13 @@ namespace Scripts.Player
             // Sort the Planets into ascending order based on distance from SpaceShip.
             tempList.Sort((x, y) => CalculateVectorBetwwenEntities(x, locatingEntity).magnitude.CompareTo(CalculateVectorBetwwenEntities(y, locatingEntity).magnitude));
 
-            // Return the first element of the list which is the closest Planet.
+            // Return the first element of the list which is the nearest Planet.
             return tempList[0];
         }
 
         void UpdateClosestPlanet()
         {
-            _barycenter = FindClosestPlanet(_spaceShip);
+            _barycenter = FindNearestPlanet(_spaceShip);
             _uIManager.SetText(_uIManager.NearestPlanetText, _barycenter.name); // Update UI;
         }
 
@@ -120,7 +118,7 @@ namespace Scripts.Player
                     if (!_sFXManager.IsPlaying(_sFXManager.ThrustASrc))
                         _sFXManager.PlaySound(_sFXManager.ThrustASrc, _sFXManager.Thrust);
                 }
-                else 
+                else
                 {
                     _sFXManager.StopSound(_sFXManager.ThrustASrc);
                     StopParticleEffects();
@@ -130,9 +128,14 @@ namespace Scripts.Player
                 {
                     _brakeLight.intensity = 4;
                     _rb.velocity /= _thrustForce;
+                    if (!_sFXManager.IsPlaying(_sFXManager.ReverseThrustASrc))
+                        _sFXManager.PlaySound(_sFXManager.ReverseThrustASrc, _sFXManager.ReverseThrust);
                 }
                 else
+                {
                     _brakeLight.intensity = 0;
+                    _sFXManager.StopSound(_sFXManager.ReverseThrustASrc);
+                }
             }
         }
 
@@ -140,7 +143,7 @@ namespace Scripts.Player
         {
             _health.TakeDamage(25);
             _sFXManager.PlaySound(_sFXManager.ASrc, _sFXManager.Hit);
-            // Particles? Sparks
+            _impactParticles.Play();
         }
 
         private void DestroySpaceShip()
@@ -149,9 +152,7 @@ namespace Scripts.Player
             isDestroyed = true;
             _sFXManager.PlaySound(_sFXManager.ASrc, _sFXManager.Crash);
             Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-            _rb.isKinematic = true;
-            _shipMeshRenderer.enabled = false;
-            StopParticleEffects();
+            Destroy(this.gameObject);
         }
 
         void StopParticleEffects() 

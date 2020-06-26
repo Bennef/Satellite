@@ -14,7 +14,7 @@ namespace Scripts.Player
 
         void Start()
         {
-            HealthLeft = 100;
+            _healthLeft = 100;
             _maxHealth = 100;
         }
 
@@ -24,21 +24,21 @@ namespace Scripts.Player
             if (_isInvincible)
                 return;
             Invincible();
-            HealthLeft -= damageToTake;
             damageToTake = Mathf.Clamp(damageToTake, 0, _maxHealth);
+            _healthLeft -= damageToTake;
         }
 
         // Increase the health of the thing.
         public void IncreaseHealth(int healthToAdd)
         {
-            HealthLeft += healthToAdd;
-            HealthLeft = Mathf.Clamp(HealthLeft, 0, _maxHealth);
+            _healthLeft += healthToAdd;
+            _healthLeft = Mathf.Clamp(HealthLeft, 0, _maxHealth);
         }
 
         public void SetHealth(int valueToSet)
         {
-            HealthLeft = valueToSet;
-            HealthLeft = Mathf.Clamp(HealthLeft, 0, _maxHealth);
+            _healthLeft = valueToSet;
+            _healthLeft = Mathf.Clamp(_healthLeft, 0, _maxHealth);
         }
 
         protected void Invincible() => StartCoroutine(InvincibleCo());
