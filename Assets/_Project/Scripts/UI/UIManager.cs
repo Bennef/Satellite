@@ -6,10 +6,12 @@ namespace Scripts.UI
     public class UIManager : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI _nearestPlanetLabel, _nearestPlanetText;
+        [SerializeField] private TextMeshProUGUI _faceTrajectoryLabel, _faceTrajectoryText;
 
         public TextMeshProUGUI NearestPlanetLabel => _nearestPlanetLabel;
-
         public TextMeshProUGUI NearestPlanetText { get => _nearestPlanetText; set => _nearestPlanetText = value; }
+        public TextMeshProUGUI FaceTrajectoryLabel { get => _faceTrajectoryLabel; }        
+        public TextMeshProUGUI FaceTrajectoryText { get => _faceTrajectoryText; set => _faceTrajectoryText = value; }
 
         public void ShowText(TextMeshProUGUI textToShow) => textToShow.enabled = true;
 

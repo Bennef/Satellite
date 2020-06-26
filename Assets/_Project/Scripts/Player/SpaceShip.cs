@@ -1,6 +1,7 @@
 ﻿using Scripts.Audio;
 using Scripts.Inputs;
 using Scripts.UI;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,14 +11,14 @@ namespace Scripts.Player
     {
         [SerializeField] private Vector3 initialVelocity = new Vector3(1500, 0);
         [SerializeField] private Transform explosionPrefab;
-        [SerializeField] private float EMPRadius;
+        [SerializeField] private float EMPRadius = 40;
         [SerializeField] private float EMPPower;
-        [SerializeField] private bool shouldAddThrust, shouldBrake, isDead, isDestroyed;
-        [SerializeField] private Transform _barycenter; 
+        [SerializeField] private bool _shouldAddThrust, _shouldBrake, _isDead, _isDestroyed, _playerTurning, _facingTrajectory;
         [SerializeField] private List<Transform> _planetList;
         [SerializeField] private ParticleSystem[] _thrustParticles;
         [SerializeField] private ParticleSystem _EMPParticles, _impactParticles;
         private float _thrustForce = 1.001f;
+        private float yRot;
         private Rigidbody _rb;
         private Transform _spaceShip;
         private SFXManager _sFXManager;
@@ -25,8 +26,9 @@ namespace Scripts.Player
         private Light _brakeLight;
         private UIManager _uIManager;
         private Health _health;
-        
-        public Transform Barycenter { get => _barycenter; set => _barycenter = value; }
+        private Quaternion targetRotation;
+
+        public Transform Barycenter { get; set; }
 
         void Start()
         {
@@ -43,6 +45,8 @@ namespace Scripts.Player
             foreach (GameObject go in GameObject.FindGameObjectsWithTag("Planet"))
                 _planetList.Add(go.GetComponent<Transform>());
 
+            _facingTrajectory = true;
+            UpdateFacingTrajectoryLabel();
             InvokeRepeating("UpdateClosestPlanet", 0, 1); // Update the closest Planet every second.
         }
 
@@ -50,93 +54,143 @@ namespace Scripts.Player
         {
             // Create a temporary List of Planets so we don't reorder the main List.
             List<Transform> tempList = _planetList;
-
             // Sort the Planets into ascending order based on distance from SpaceShip.
             tempList.Sort((x, y) => CalculateVectorBetwwenEntities(x, locatingEntity).magnitude.CompareTo(CalculateVectorBetwwenEntities(y, locatingEntity).magnitude));
-
             // Return the first element of the list which is the nearest Planet.
             return tempList[0];
         }
 
         void UpdateClosestPlanet()
         {
-            _barycenter = FindNearestPlanet(_spaceShip);
-            _uIManager.SetText(_uIManager.NearestPlanetText, _barycenter.name); // Update UI;
+            Barycenter = FindNearestPlanet(_spaceShip);
+            _uIManager.SetText(_uIManager.NearestPlanetText, Barycenter.name); // Update UI;
         }
 
         void Update()
         {
             CheckIfDead();
 
-            if (isDead)
+            if (_isDead)
             {
-                if (!isDestroyed)
+                if (!_isDestroyed)
                     DestroySpaceShip();
                 return;
             }
             else
             {
+                if (_inputHandler.GetFaceTrajectoryButtonDown())
+                    ToggleFollowingTrajectory();
+
                 // Apply forward thrust to the SpaceShip every frame Space key is pressed.
                 if (_inputHandler.GetThrustButtonDown())
-                    shouldAddThrust = true;
+                    _shouldAddThrust = true;
                 else
-                    shouldAddThrust = false;
+                    _shouldAddThrust = false;
 
                 if (_inputHandler.GetBrakeButtonDown())
-                    shouldBrake = true;
+                    _shouldBrake = true;
                 else
-                    shouldBrake = false;
+                    _shouldBrake = false;
 
-                RotateToVelocityDir();
+                if (_inputHandler.GetLeftButtonDown())
+                    TurnLeft();
+                else if (_inputHandler.GetRighttButtonDown())
+                    TurnRight();
+                else
+                {
+                    yRot = 0;
+                    if (_facingTrajectory)
+                        RotateToVelocityDir();
+                }
 
-                // If player presses F, launch a mine.
-                if (_inputHandler.GetDeploySatelliteButtonDown())
+                if (_inputHandler.GetDeployMineButtonDown())
                     DeployMine();
 
-                // If player presses E or clicks mouse, cause EMP.
                 if (_inputHandler.GetEMPButtonDown())
-                    EMP();
+                    FireEMP();
             }
         }
 
-        void CheckIfDead()
+        private void UpdateFacingTrajectoryLabel()
         {
-            if (_health.HealthLeft < 1)
-                isDead = true;
+            if (_facingTrajectory)
+                _uIManager.SetText(_uIManager.FaceTrajectoryText, "Yes");
+            else
+                _uIManager.SetText(_uIManager.FaceTrajectoryText, "No");
         }
 
         void FixedUpdate()
         {
-            if (!isDead)
+            if (!_isDead)
             {
-                // Apply forward thrust to the SpaceShip every frame Space key is pressed.
-                if (shouldAddThrust && !shouldBrake)
-                {
-                    _rb.velocity *= _thrustForce;
-                    foreach (ParticleSystem flames in _thrustParticles)
-                        flames.Play();
-                    if (!_sFXManager.IsPlaying(_sFXManager.ThrustASrc))
-                        _sFXManager.PlaySound(_sFXManager.ThrustASrc, _sFXManager.Thrust);
-                }
+                if (_shouldAddThrust && !_shouldBrake)
+                    Thrust();
                 else
                 {
                     _sFXManager.StopSound(_sFXManager.ThrustASrc);
-                    StopParticleEffects();
+                    StopThrustParticleEffects();
                 }
 
-                if (shouldBrake && !shouldAddThrust)
-                {
-                    _brakeLight.intensity = 4;
-                    _rb.velocity /= _thrustForce;
-                    if (!_sFXManager.IsPlaying(_sFXManager.ReverseThrustASrc))
-                        _sFXManager.PlaySound(_sFXManager.ReverseThrustASrc, _sFXManager.ReverseThrust);
-                }
+                if (_shouldBrake && !_shouldAddThrust)
+                    Brake();
                 else
                 {
                     _brakeLight.intensity = 0;
                     _sFXManager.StopSound(_sFXManager.ReverseThrustASrc);
                 }
             }
+        }
+
+        void Thrust()
+        {
+            //_rb.velocity *= _thrustForce * transform.forward;
+            _rb.AddForce(transform.forward * 10, ForceMode.Force);
+            foreach (ParticleSystem flames in _thrustParticles)
+                flames.Play();
+            if (!_sFXManager.IsPlaying(_sFXManager.ThrustASrc))
+                _sFXManager.PlaySound(_sFXManager.ThrustASrc, _sFXManager.Thrust);
+        }
+
+        private void Brake()
+        {
+            _brakeLight.intensity = 4;
+            _rb.velocity /= _thrustForce;
+            if (!_sFXManager.IsPlaying(_sFXManager.ReverseThrustASrc))
+                _sFXManager.PlaySound(_sFXManager.ReverseThrustASrc, _sFXManager.ReverseThrust);
+        }
+
+        void TurnLeft()
+        {
+            yRot -= Time.deltaTime * 10;
+            ClampYRotation();
+            transform.Rotate(0, yRot, 0);
+        }
+
+        void TurnRight()
+        {
+            yRot += Time.deltaTime * 10;
+            ClampYRotation();
+            transform.Rotate(0, yRot, 0);
+        }
+
+        void ClampYRotation() => yRot = Mathf.Clamp(yRot, -1f, 1f);
+
+        public void RotateToVelocityDir()
+        {
+            targetRotation = Quaternion.LookRotation(_rb.velocity);
+            _spaceShip.rotation = Quaternion.Lerp(_spaceShip.rotation, targetRotation, 5 * Time.deltaTime);
+        }
+
+        void ToggleFollowingTrajectory()
+        {
+            _facingTrajectory = !_facingTrajectory;
+            UpdateFacingTrajectoryLabel();
+        }
+
+        void CheckIfDead()
+        {
+            if (_health.HealthLeft < 1)
+                _isDead = true;
         }
 
         private void OnCollisionEnter(Collision collision)
@@ -148,20 +202,19 @@ namespace Scripts.Player
 
         private void DestroySpaceShip()
         {
-            isDead = true;
-            isDestroyed = true;
+            _isDestroyed = true;
             _sFXManager.PlaySound(_sFXManager.ASrc, _sFXManager.Crash);
             Instantiate(explosionPrefab, transform.position, Quaternion.identity);
             Destroy(this.gameObject);
         }
 
-        void StopParticleEffects() 
+        void StopThrustParticleEffects() 
         {
             foreach (ParticleSystem flames in _thrustParticles)
                 flames.Stop();
         }
 
-        private void EMP()
+        private void FireEMP()
         {
             Vector3 explosionPos = transform.position;
             Collider[] colliders = Physics.OverlapSphere(explosionPos, EMPRadius);
@@ -181,8 +234,6 @@ namespace Scripts.Player
             return entity2.position - entity1.position;
         }
 
-        public void RotateToVelocityDir() => _spaceShip.rotation = Quaternion.LookRotation(_rb.velocity, Vector3.up);
-
         public void SetVelocity(Vector3 newVelocity)
         {
             _rb.AddForce(_spaceShip.forward, ForceMode.Force);
@@ -191,6 +242,7 @@ namespace Scripts.Player
 
         public void DeployMine()
         {
+            // Instantiate mine
             // Play sound
             print("mine");
         }
