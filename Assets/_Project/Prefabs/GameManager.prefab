@@ -296,8 +296,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 159634aa1cd143746895179b452d44ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  thrust: {fileID: 0}
-  crash: {fileID: 0}
+  _thrust: {fileID: 8300000, guid: b6f85dc781f1c164db643a96a3522c6f, type: 3}
+  _crash: {fileID: 8300000, guid: e6465b40d33514f4ea2fdf390470a0a6, type: 3}
+  _impact: {fileID: 8300000, guid: 66a1b72598cf2ad4a8b9705d6c1fcc81, type: 3}
+  _EMP: {fileID: 8300000, guid: a0beb7a053ae10848acda320651da422, type: 3}
 --- !u!1 &3229576622650762240
 GameObject:
   m_ObjectHideFlags: 0

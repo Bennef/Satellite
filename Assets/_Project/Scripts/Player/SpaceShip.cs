@@ -12,31 +12,33 @@ namespace Scripts.Player
         [SerializeField] private Transform explosionPrefab;
         [SerializeField] private float EMPRadius;
         [SerializeField] private float EMPPower;
-        [SerializeField] private bool shouldAddThrust, shouldBrake, isDead;
+        [SerializeField] private bool shouldAddThrust, shouldBrake, isDead, isDestroyed;
         [SerializeField] private Transform _barycenter; 
         [SerializeField] private List<Transform> _planetList;
+        [SerializeField] private ParticleSystem[] _thrustParticles;
+        [SerializeField] private ParticleSystem _EMPParticles;
         private float _thrustForce = 1.001f;
         private Rigidbody _rb;
         private Transform _spaceShip;
-        private ParticleSystem[] _thrustParticles;
         private MeshRenderer _shipMeshRenderer;
         private SFXManager _sFXManager;
         private InputHandler _inputHandler;
         private Light _brakeLight;
         private UIManager _uIManager;
-
+        private Health _health;
+        
         public Transform Barycenter { get => _barycenter; set => _barycenter = value; }
 
         void Start()
         {
             _rb = gameObject.GetComponent<Rigidbody>();
             _spaceShip = gameObject.GetComponent<Transform>();
-            _thrustParticles = gameObject.GetComponentsInChildren<ParticleSystem>();
             _shipMeshRenderer = GetComponentInChildren<MeshRenderer>();
             _sFXManager = FindObjectOfType<SFXManager>();
             _inputHandler = FindObjectOfType<InputHandler>();
             _brakeLight = GameObject.Find("Brake Light").GetComponent<Light>();
             _uIManager = FindObjectOfType<UIManager>();
+            _health = GetComponent<Health>();
 
             _rb.AddForce(initialVelocity); // Set initial velocity of ship.
 
@@ -66,7 +68,15 @@ namespace Scripts.Player
 
         void Update()
         {
-            if (!isDead)
+            CheckIfDead();
+
+            if (isDead)
+            {
+                if (!isDestroyed)
+                    DestroySpaceShip();
+                return;
+            }
+            else
             {
                 // Apply forward thrust to the SpaceShip every frame Space key is pressed.
                 if (_inputHandler.GetThrustButtonDown())
@@ -81,34 +91,39 @@ namespace Scripts.Player
 
                 RotateToVelocityDir();
 
-                // If player presses F, launch a satellite.
+                // If player presses F, launch a mine.
                 if (_inputHandler.GetDeploySatelliteButtonDown())
-                    LaunchSatellite();
+                    DeployMine();
 
                 // If player presses E or clicks mouse, cause EMP.
                 if (_inputHandler.GetEMPButtonDown())
                     EMP();
             }
         }
-        
+
+        void CheckIfDead()
+        {
+            if (_health.HealthLeft < 1)
+                isDead = true;
+        }
+
         void FixedUpdate()
         {
             if (!isDead)
             {
                 // Apply forward thrust to the SpaceShip every frame Space key is pressed.
-                if (shouldAddThrust && ! shouldBrake)
+                if (shouldAddThrust && !shouldBrake)
                 {
                     _rb.velocity *= _thrustForce;
                     foreach (ParticleSystem flames in _thrustParticles)
                         flames.Play();
-                    if (!_sFXManager.IsPlaying())
-                        _sFXManager.PlaySound(_sFXManager.Thrust);
+                    if (!_sFXManager.IsPlaying(_sFXManager.ThrustASrc))
+                        _sFXManager.PlaySound(_sFXManager.ThrustASrc, _sFXManager.Thrust);
                 }
                 else 
                 {
-                    _sFXManager.StopSound();
-                    foreach (ParticleSystem flames in _thrustParticles)
-                        flames.Stop();
+                    _sFXManager.StopSound(_sFXManager.ThrustASrc);
+                    StopParticleEffects();
                 }
 
                 if (shouldBrake && !shouldAddThrust)
@@ -121,15 +136,28 @@ namespace Scripts.Player
             }
         }
 
-        private void OnCollisionEnter(Collision collision) => DestroySpaceShip();
+        private void OnCollisionEnter(Collision collision)
+        {
+            _health.TakeDamage(25);
+            _sFXManager.PlaySound(_sFXManager.ASrc, _sFXManager.Hit);
+            // Particles? Sparks
+        }
 
         private void DestroySpaceShip()
         {
             isDead = true;
-            _sFXManager.PlaySound(_sFXManager.Crash);
+            isDestroyed = true;
+            _sFXManager.PlaySound(_sFXManager.ASrc, _sFXManager.Crash);
             Instantiate(explosionPrefab, transform.position, Quaternion.identity);
             _rb.isKinematic = true;
             _shipMeshRenderer.enabled = false;
+            StopParticleEffects();
+        }
+
+        void StopParticleEffects() 
+        {
+            foreach (ParticleSystem flames in _thrustParticles)
+                flames.Stop();
         }
 
         private void EMP()
@@ -143,7 +171,8 @@ namespace Scripts.Player
                 if (rb != null)
                     rb.AddExplosionForce(EMPPower, explosionPos, EMPRadius, 3.0F);
             }
-            Debug.Log("EMP");
+            _sFXManager.PlaySound(_sFXManager.ASrc, _sFXManager.EMP);
+            _EMPParticles.Play();
         }
 
         public static Vector3 CalculateVectorBetwwenEntities(Transform entity1, Transform entity2)
@@ -159,9 +188,10 @@ namespace Scripts.Player
             _rb.AddForce(newVelocity, ForceMode.Acceleration);
         }
 
-        public void LaunchSatellite()
+        public void DeployMine()
         {
-            Debug.Log("launch");
+            // Play sound
+            print("mine");
         }
     }
 }

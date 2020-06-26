@@ -5,7 +5,7 @@ namespace Scripts.Environment
     public class Rotate : MonoBehaviour
     {
         [SerializeField] private Vector3 eulerAngleVelocity;
-        [SerializeField] public bool shouldRotate;   
+        [SerializeField] public bool shouldRotate = true;   
         private Rigidbody _rb;
 
         void Start() => _rb = GetComponent<Rigidbody>();

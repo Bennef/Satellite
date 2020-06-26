@@ -5,7 +5,7 @@ namespace Scripts.Environment
     public class Satellite : MonoBehaviour
     {
         [SerializeField] private Vector3 initialVelocity;
-        //[SerializeField] private Transform _barycenter; 
+        [SerializeField] private int _health = 100;
         private Rigidbody _rb;
 
         void Start()
