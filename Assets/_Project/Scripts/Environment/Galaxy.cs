@@ -6,7 +6,23 @@ namespace Scripts.Environment
 {
     public class Galaxy : MonoBehaviour
     {
-        // Generate the galaxy// create a list of planets and satellites. We can use this list in SpaceShip for 
-        // nearest planet etc
+        [SerializeField] private List<GameObject> _availablePlanetList;
+        [SerializeField] private List<GameObject> _availableAsteroidList;
+        [SerializeField] private List<Transform> _planetList;
+
+        public List<Transform> PlanetList { get => _planetList; }
+
+        private void Awake()
+        {
+            PopulateGalaxy();
+
+            foreach (GameObject go in GameObject.FindGameObjectsWithTag("Planet"))
+                PlanetList.Add(go.GetComponent<Transform>());
+        }
+
+        void PopulateGalaxy()
+        {
+
+        }
     }
 }

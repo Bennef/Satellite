@@ -23,7 +23,7 @@ namespace Scripts.Camera
         public void FixedCameraFollowSmooth(Transform t1, Transform t2)
         {
             // How many units should we keep from the spacehip/barycenter
-            float zoomFactor = 1.5f;
+            float zoomFactor = 1f;
             float followTimeDelta = 0.8f;
 
             // Midpoint we're after
@@ -36,8 +36,7 @@ namespace Scripts.Camera
             Vector3 cameraDestination = midpoint - transform.forward * distance * zoomFactor;
 
             // Move camera
-            if (transform.position.y < 1500) // Needs looking at
-                transform.position = Vector3.Slerp(transform.position, cameraDestination, followTimeDelta);
+            transform.position = Vector3.Slerp(transform.position, cameraDestination, followTimeDelta);
 
             // Snap when close enough to prevent annoying slerp behavior
             if ((cameraDestination - transform.position).magnitude <= 0.05f)

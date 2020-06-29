@@ -1,4 +1,4 @@
- using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 /* Example script to apply trauma to the camera or any game object */

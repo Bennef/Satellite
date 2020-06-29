@@ -101,10 +101,12 @@
     <Compile Include="Assets\_Project\Scripts\Audio\SFXManager.cs" />
     <Compile Include="Assets\_Project\Scripts\Camera\CameraZoom.cs" />
     <Compile Include="Assets\_Project\Scripts\Core\Health.cs" />
+    <Compile Include="Assets\_Project\Scripts\Environment\Asteroid.cs" />
+    <Compile Include="Assets\_Project\Scripts\Environment\Debris.cs" />
     <Compile Include="Assets\_Project\Scripts\Environment\Galaxy.cs" />
     <Compile Include="Assets\_Project\Scripts\Environment\GravitySource.cs" />
+    <Compile Include="Assets\_Project\Scripts\Environment\Planet.cs" />
     <Compile Include="Assets\_Project\Scripts\Environment\Rotate.cs" />
-    <Compile Include="Assets\_Project\Scripts\Environment\Satellite.cs" />
     <Compile Include="Assets\_Project\Scripts\Inputs\InputHandler.cs" />
     <Compile Include="Assets\_Project\Scripts\Player\IDamageable.cs" />
     <Compile Include="Assets\_Project\Scripts\Player\SpaceShip.cs" />

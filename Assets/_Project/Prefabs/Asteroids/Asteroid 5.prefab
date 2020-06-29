@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 3738050437466708430}
   - component: {fileID: 2637282740119396667}
   m_Layer: 0
-  m_Name: Asteroid 2
+  m_Name: Asteroid 5
   m_TagString: Moon
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,7 +44,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5542068979558375542}
-  m_Mesh: {fileID: 4300002, guid: bb7152a7b4f594046ab64c75906b026b, type: 3}
+  m_Mesh: {fileID: 4300002, guid: a7d8b4930aed6ec4c9fa956479d8716a, type: 3}
 --- !u!23 &5542068979558375539
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -98,6 +98,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   initialVelocity: {x: -2000, y: 0, z: 0}
   _health: 100
+  _debris:
+  - {fileID: 8800235494926666963, guid: 4cacbf0172c2aec48bfb544869ea3f80, type: 3}
+  - {fileID: 5542068979558375542, guid: 5851e478bac5eec4f891b57be8c50b04, type: 3}
+  - {fileID: 5542068979558375542, guid: bbcfb06299801804c82be09a4f4a2f2a, type: 3}
+  - {fileID: 5542068979558375542, guid: 534fcc4be7355774aa38f67960cdc4f6, type: 3}
+  - {fileID: 5542068979558375542, guid: fc919877cec7c57468d2cc43dd7f7e97, type: 3}
 --- !u!54 &5542068979558375540
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -233,7 +239,7 @@ MeshCollider:
   serializedVersion: 4
   m_Convex: 1
   m_CookingOptions: 30
-  m_Mesh: {fileID: 4300002, guid: bb7152a7b4f594046ab64c75906b026b, type: 3}
+  m_Mesh: {fileID: 4300002, guid: a7d8b4930aed6ec4c9fa956479d8716a, type: 3}
 --- !u!114 &2637282740119396667
 MonoBehaviour:
   m_ObjectHideFlags: 0

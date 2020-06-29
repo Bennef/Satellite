@@ -1,7 +1,7 @@
 ﻿using Scripts.Audio;
+using Scripts.Environment;
 using Scripts.Inputs;
 using Scripts.UI;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,8 +13,7 @@ namespace Scripts.Player
         [SerializeField] private Transform explosionPrefab;
         [SerializeField] private float EMPRadius = 40;
         [SerializeField] private float EMPPower;
-        [SerializeField] private bool _shouldAddThrust, _shouldBrake, _isDead, _isDestroyed, _playerTurning, _facingTrajectory;
-        [SerializeField] private List<Transform> _planetList;
+        [SerializeField] private bool _shouldAddThrust, _shouldBrake, _isDead, _isDestroyed, _playerTurning, _lockTrajectory;
         [SerializeField] private ParticleSystem[] _thrustParticles;
         [SerializeField] private ParticleSystem _EMPParticles, _impactParticles;
         private float _thrustForce = 1.001f;
@@ -23,12 +22,14 @@ namespace Scripts.Player
         private Transform _spaceShip;
         private SFXManager _sFXManager;
         private InputHandler _inputHandler;
+        private Galaxy _galaxy;
         private Light _brakeLight;
         private UIManager _uIManager;
         private Health _health;
         private Quaternion targetRotation;
+        private Transform _barycenter;
 
-        public Transform Barycenter { get; set; }
+        public Transform Barycenter { get => _barycenter; set => _barycenter = value; }
 
         void Start()
         {
@@ -39,13 +40,11 @@ namespace Scripts.Player
             _brakeLight = GameObject.Find("Brake Light").GetComponent<Light>();
             _uIManager = FindObjectOfType<UIManager>();
             _health = GetComponent<Health>();
+            _galaxy = FindObjectOfType<Galaxy>();
 
             _rb.AddForce(initialVelocity); // Set initial velocity of ship.
 
-            foreach (GameObject go in GameObject.FindGameObjectsWithTag("Planet"))
-                _planetList.Add(go.GetComponent<Transform>());
-
-            _facingTrajectory = true;
+            _lockTrajectory = true;
             UpdateFacingTrajectoryLabel();
             InvokeRepeating("UpdateClosestPlanet", 0, 1); // Update the closest Planet every second.
         }
@@ -53,9 +52,9 @@ namespace Scripts.Player
         public Transform FindNearestPlanet(Transform locatingEntity)
         {
             // Create a temporary List of Planets so we don't reorder the main List.
-            List<Transform> tempList = _planetList;
+            List<Transform> tempList = _galaxy.PlanetList;
             // Sort the Planets into ascending order based on distance from SpaceShip.
-            tempList.Sort((x, y) => CalculateVectorBetwwenEntities(x, locatingEntity).magnitude.CompareTo(CalculateVectorBetwwenEntities(y, locatingEntity).magnitude));
+            tempList.Sort((x, y) => CalculateVectorBetwwenEntities(x, locatingEntity).sqrMagnitude.CompareTo(CalculateVectorBetwwenEntities(y, locatingEntity).sqrMagnitude));
             // Return the first element of the list which is the nearest Planet.
             return tempList[0];
         }
@@ -69,6 +68,8 @@ namespace Scripts.Player
         void Update()
         {
             CheckIfDead();
+            UpdateVelocityLabel();
+            UpdateHealthLabel();
 
             if (_isDead)
             {
@@ -92,16 +93,15 @@ namespace Scripts.Player
                 else
                     _shouldBrake = false;
 
-                if (_inputHandler.GetLeftButtonDown())
+                if (_lockTrajectory)
+                { 
+                    RotateToVelocityDir();
+                    yRot = 0;
+                }
+                else if (_inputHandler.GetLeftButtonDown())
                     TurnLeft();
                 else if (_inputHandler.GetRighttButtonDown())
                     TurnRight();
-                else
-                {
-                    yRot = 0;
-                    if (_facingTrajectory)
-                        RotateToVelocityDir();
-                }
 
                 if (_inputHandler.GetDeployMineButtonDown())
                     DeployMine();
@@ -113,10 +113,16 @@ namespace Scripts.Player
 
         private void UpdateFacingTrajectoryLabel()
         {
-            if (_facingTrajectory)
-                _uIManager.SetText(_uIManager.FaceTrajectoryText, "Yes");
+            if (_lockTrajectory)
+            {
+                _uIManager.SetText(_uIManager.FaceTrajectoryText, "On");
+                _uIManager.SetColour(_uIManager.FaceTrajectoryText, Color.green);
+            }
             else
-                _uIManager.SetText(_uIManager.FaceTrajectoryText, "No");
+            {
+                _uIManager.SetText(_uIManager.FaceTrajectoryText, "Off");
+                _uIManager.SetColour(_uIManager.FaceTrajectoryText, Color.red);
+            }
         }
 
         void FixedUpdate()
@@ -139,11 +145,11 @@ namespace Scripts.Player
                     _sFXManager.StopSound(_sFXManager.ReverseThrustASrc);
                 }
             }
+            CapVelocity();
         }
 
         void Thrust()
         {
-            //_rb.velocity *= _thrustForce * transform.forward;
             _rb.AddForce(transform.forward * 10, ForceMode.Force);
             foreach (ParticleSystem flames in _thrustParticles)
                 flames.Play();
@@ -183,8 +189,14 @@ namespace Scripts.Player
 
         void ToggleFollowingTrajectory()
         {
-            _facingTrajectory = !_facingTrajectory;
+            _lockTrajectory = !_lockTrajectory;
             UpdateFacingTrajectoryLabel();
+        }
+
+        void CapVelocity()
+        {
+            if (_rb.velocity.magnitude > 100)
+                _rb.velocity /= _thrustForce;
         }
 
         void CheckIfDead()
@@ -208,7 +220,7 @@ namespace Scripts.Player
             Destroy(this.gameObject);
         }
 
-        void StopThrustParticleEffects() 
+        void StopThrustParticleEffects()
         {
             foreach (ParticleSystem flames in _thrustParticles)
                 flames.Stop();
@@ -245,6 +257,30 @@ namespace Scripts.Player
             // Instantiate mine
             // Play sound
             print("mine");
+        }
+
+        private float CalculateSpeed() => Mathf.Round(_rb.velocity.magnitude);
+
+        void UpdateVelocityLabel() => _uIManager.SetText(_uIManager.VelocityText, CalculateSpeed().ToString());
+
+        void UpdateHealthLabel()
+        {
+            _uIManager.SetText(_uIManager.HealthText, _health.HealthLeft.ToString());
+            switch (_health.HealthLeft)
+            {
+                case 100:
+                    _uIManager.SetColour(_uIManager.HealthText, Color.green);
+                    break;
+                case 75:
+                    _uIManager.SetColour(_uIManager.HealthText, Color.yellow);
+                    break;
+                case 50:
+                    _uIManager.SetColour(_uIManager.HealthText, new Color(255, 165, 0));
+                    break;
+                case 25:
+                    _uIManager.SetColour(_uIManager.HealthText, Color.red);
+                    break;
+            }
         }
     }
 }
