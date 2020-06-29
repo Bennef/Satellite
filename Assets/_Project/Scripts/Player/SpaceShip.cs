@@ -98,7 +98,8 @@ namespace Scripts.Player
                     RotateToVelocityDir();
                     yRot = 0;
                 }
-                else if (_inputHandler.GetLeftButtonDown())
+                
+                if (_inputHandler.GetLeftButtonDown())
                     TurnLeft();
                 else if (_inputHandler.GetRighttButtonDown())
                     TurnRight();
@@ -167,6 +168,8 @@ namespace Scripts.Player
 
         void TurnLeft()
         {
+            if (yRot > 0)
+                yRot = 0;
             yRot -= Time.deltaTime * 10;
             ClampYRotation();
             transform.Rotate(0, yRot, 0);
@@ -174,6 +177,8 @@ namespace Scripts.Player
 
         void TurnRight()
         {
+            if (yRot < 0)
+                yRot = 0;
             yRot += Time.deltaTime * 10;
             ClampYRotation();
             transform.Rotate(0, yRot, 0);

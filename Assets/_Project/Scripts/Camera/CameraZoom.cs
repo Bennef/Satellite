@@ -23,7 +23,7 @@ namespace Scripts.Camera
         public void FixedCameraFollowSmooth(Transform t1, Transform t2)
         {
             // How many units should we keep from the spacehip/barycenter
-            float zoomFactor = 1f;
+            float zoomFactor = 1.5f;
             float followTimeDelta = 0.8f;
 
             // Midpoint we're after

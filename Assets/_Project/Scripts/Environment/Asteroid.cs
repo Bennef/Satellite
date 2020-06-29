@@ -17,11 +17,18 @@ namespace Scripts.Environment
 
         void OnCollisionEnter(Collision collision)
         {
+            print(collision.relativeVelocity.magnitude);
+            if (collision.relativeVelocity.magnitude > 75)
+                DestroyAsteroid();
+        }
+
+        void DestroyAsteroid()
+        {
             // Play sound
-            foreach(GameObject obj in _debris)
-            { 
+            foreach (GameObject obj in _debris)
+            {
                 Instantiate(obj, transform.position, Quaternion.identity);
-                obj.transform.localScale = new Vector3(4f, 3f, 3.5f);
+                obj.transform.localScale = new Vector3(5f, 5f, 5f);
             }
             Destroy(this.gameObject);
         }
