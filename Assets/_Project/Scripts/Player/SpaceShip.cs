@@ -13,10 +13,11 @@ namespace Scripts.Player
         [SerializeField] private Transform explosionPrefab;
         [SerializeField] private float EMPRadius = 40;
         [SerializeField] private float EMPPower;
+        [SerializeField] private GameObject Mine, MinePos;
         [SerializeField] private bool _shouldAddThrust, _shouldBrake, _isDead, _isDestroyed, _playerTurning, _lockTrajectory;
         [SerializeField] private ParticleSystem[] _thrustParticles;
         [SerializeField] private ParticleSystem _EMPParticles, _impactParticles;
-        private float _thrustForce = 1.001f;
+        [SerializeField] private float _thrustForce = 1.001f;
         private float yRot;
         private Rigidbody _rb;
         private Transform _spaceShip;
@@ -212,7 +213,7 @@ namespace Scripts.Player
 
         private void OnCollisionEnter(Collision collision)
         {
-            _health.TakeDamage(25);
+            _health.TakeDamage(5);
             _sFXManager.PlaySound(_sFXManager.ASrc, _sFXManager.Hit);
             _impactParticles.Play();
         }
@@ -259,9 +260,8 @@ namespace Scripts.Player
 
         public void DeployMine()
         {
-            // Instantiate mine
-            // Play sound
-            print("mine");
+            Instantiate(Mine, MinePos.transform.position, Quaternion.identity);
+            _sFXManager.PlaySound(_sFXManager.ASrc, _sFXManager.Mine);
         }
 
         private float CalculateSpeed() => Mathf.Round(_rb.velocity.magnitude);

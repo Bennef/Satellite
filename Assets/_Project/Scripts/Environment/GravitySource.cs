@@ -5,9 +5,9 @@ namespace Scripts.Environment
     [RequireComponent(typeof(Rigidbody))]
     public class GravitySource : MonoBehaviour
     {
-        private float _gravity = 200000;
+        private const float _GRAVITY = 200000;
 
-        public float Gravity { get => _gravity; set => _gravity = value; }
+        public float Gravity { get => _GRAVITY; }
 
         void OnTriggerStay(Collider other)
         {
@@ -18,10 +18,9 @@ namespace Scripts.Environment
 
                 float dist = difference.magnitude;
                 Vector3 gravityDirection = difference.normalized;
-                Vector3 gravityVector = (gravityDirection * _gravity) / (dist * dist);
+                Vector3 gravityVector = (gravityDirection * _GRAVITY) / (dist * dist);
 
                 otherRigidbody.AddForce(gravityVector, ForceMode.Acceleration);
-                //Debug.Log(gameObject.name + ",    " + otherRigidbody.name);
             }
         }
     }

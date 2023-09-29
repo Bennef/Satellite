@@ -5,7 +5,6 @@ namespace Scripts.Environment
 {
     public class Debris : MonoBehaviour
     {
-        // Start is called before the first frame update
         void Start() => StartCoroutine(ScaleOverTime(3));
 
         IEnumerator ScaleOverTime(float time)

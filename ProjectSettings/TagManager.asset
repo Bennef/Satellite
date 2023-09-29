@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Planet
   - Moon
+  - Asteroid
+  - enemy
+  - Mine
   layers:
   - Default
   - TransparentFX

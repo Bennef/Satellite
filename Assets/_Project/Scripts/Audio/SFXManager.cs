@@ -4,7 +4,7 @@ namespace Scripts.Audio
 {
     public class SFXManager : MonoBehaviour
     {
-        [SerializeField] private AudioClip _crash, _impact, _EMP, _thrust, _reverseThrust;
+        [SerializeField] private AudioClip _crash, _impact, _EMP, _thrust, _reverseThrust, _mine;
         private AudioSource _aSrc, _thrustASrc, _reverseThrustASrc;
 
         public AudioClip Crash { get => _crash; }
@@ -12,6 +12,7 @@ namespace Scripts.Audio
         public AudioClip EMP { get => _EMP; }
         public AudioClip Thrust { get => _thrust; }
         public AudioClip ReverseThrust { get => _reverseThrust; }
+        public AudioClip Mine { get => _mine; }
 
         public AudioSource ASrc { get => _aSrc; set => _aSrc = value; }
         public AudioSource ThrustASrc { get => _thrustASrc; }

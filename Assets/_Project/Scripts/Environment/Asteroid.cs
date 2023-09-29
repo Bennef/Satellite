@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 
 namespace Scripts.Environment
 {
@@ -6,8 +7,17 @@ namespace Scripts.Environment
     {
         [SerializeField] private Vector3 initialVelocity;
         [SerializeField] private int _health = 100;
+        [SerializeField] private bool _isDestroyed;
         [SerializeField] private GameObject[] _debris;
         private Rigidbody _rb;
+        private Galaxy _galaxy;
+
+        public bool IsDestroyed { get => _isDestroyed; }
+
+        private void Awake()
+        {
+            _galaxy = FindObjectOfType<Galaxy>();
+        }
 
         void Start()
         {
@@ -17,19 +27,20 @@ namespace Scripts.Environment
 
         void OnCollisionEnter(Collision collision)
         {
-            print(collision.relativeVelocity.magnitude);
-            if (collision.relativeVelocity.magnitude > 75)
+            if (collision.relativeVelocity.magnitude > 75 || collision.gameObject.CompareTag("Planet"))
                 DestroyAsteroid();
         }
 
         void DestroyAsteroid()
         {
-            // Play sound
+            // Play sound - To Do
             foreach (GameObject obj in _debris)
             {
                 Instantiate(obj, transform.position, Quaternion.identity);
                 obj.transform.localScale = new Vector3(5f, 5f, 5f);
             }
+            _isDestroyed = true;
+            _galaxy.UpdateAsteroidList();
             Destroy(this.gameObject);
         }
     }

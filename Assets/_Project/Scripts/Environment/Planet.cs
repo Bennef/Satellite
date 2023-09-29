@@ -2,7 +2,7 @@
 
 public class Planet : MonoBehaviour
 {
-    private string name;
+    private string _planetName;
 
-    public string Name { get => name; }
+    public string Name { get => _planetName; }
 }
